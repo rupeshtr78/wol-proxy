@@ -10,7 +10,7 @@ fn main() {
     };
     let result = wol::send_wol(&request);
     match result {
-        Ok(_) => println!("Magic packet sent successfully"),
         Err(e) => eprintln!("Error: {}", e),
+        Ok(_) => println!("Magic packet sent successfully"),
     }
 }

@@ -1,3 +1,4 @@
+use ::std::any;
 use anyhow::{Context, Result};
 use mac_address::MacAddress;
 use std::net::{IpAddr, UdpSocket};
@@ -67,27 +68,38 @@ pub fn send_wol(data: &WolRequest) -> Result<()> {
         )
     })?;
 
-    // magic packet, 102 bytes
+    // Wake-on-LAN (WoL) magic packet, the first 6 bytes are always "FF FF FF FF FF FF" (hexadecimal),
+    // which translates to six repetitions of the value 255, essentially a pattern of all "ones" in binary;
+    // this is considered the "magic" part of the packet that identifies it as a WoL signal.
     let mut magic_packet = vec![0; 102];
-    // first 6 bytes are 0xff
     for i in 0..6 {
         magic_packet[i] = 0xff;
     }
-    // followed by 16 times of mac address
+
+    // MAC address repetition:
+    // After the initial "FF FF FF FF FF FF" sequence,
+    // the packet contains 16 repetitions of the target computer's MAC address,
+    // which is how the specific device is identified to wake up
     for i in 0..16 {
         for j in 0..MAC_ADDR_SIZE {
             magic_packet[6 + i * MAC_ADDR_SIZE + j] = mac_addr.bytes()[j];
         }
     }
 
-    let socket = UdpSocket::bind((bind_addr, BIND_PORT)).unwrap();
-    socket
-        .set_broadcast(true)
-        .expect("set_broadcast call failed");
+    let socket = UdpSocket::bind((bind_addr, BIND_PORT))
+        .with_context(|| format!("Failed to bind UDP socket to: {:?}", &bind_addr.to_string()))?;
 
     socket
-        .send_to(&magic_packet, (bcast_addr, WOL_PORT))
-        .unwrap();
+        .set_broadcast(true)
+        .with_context(|| "Failed to set socket to broadcast mode")?;
+
+    match socket.send_to(&magic_packet, (bcast_addr, WOL_PORT)) {
+        Err(e) => {
+            let error = format!("Failed to send magic packet: {}", e);
+            return Err(anyhow::anyhow!(error));
+        }
+        Ok(_) => {}
+    }
 
     Ok(())
 }
