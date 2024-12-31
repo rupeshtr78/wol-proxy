@@ -1,6 +1,6 @@
-use ::std::any;
 use anyhow::{Context, Result};
 use mac_address::MacAddress;
+use serde::{Deserialize, Serialize};
 use std::net::{IpAddr, UdpSocket};
 
 const MAC_ADDR_SIZE: usize = 6;
@@ -9,6 +9,7 @@ const WOL_PORT: u16 = 9;
 const DEFAULT_BIND_ADDR: &str = "0.0.0.0";
 const DEFAULT_BROADCAST_ADDR: &str = "255.255.255.255";
 
+#[derive(Serialize, Deserialize)]
 pub struct WolRequest {
     pub mac_address: String,
     pub bind_addr: Option<String>,
@@ -20,11 +21,15 @@ pub fn parse_ip_addr(addr: &str) -> Result<IpAddr> {
 }
 
 impl WolRequest {
-    pub fn new(mac_address: String) -> Self {
-        Self {
-            mac_address,
-            bind_addr: None,
-            broadcast_addr: None,
+    pub fn new(
+        mac_address: &String,
+        bind_addr: &Option<String>,
+        broadcast_addr: &Option<String>,
+    ) -> Self {
+        WolRequest {
+            mac_address: mac_address.clone(),
+            bind_addr: bind_addr.clone(),
+            broadcast_addr: broadcast_addr.clone(),
         }
     }
 

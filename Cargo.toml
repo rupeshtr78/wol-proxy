@@ -7,4 +7,4 @@ edition = "2021"
 actix-web = "4.9.0"
 anyhow = "1.0.95"
 mac_address = "1.1.7"
-serde = "1.0.217"
+serde = { version= "1.0.217", features = ["derive"] }
