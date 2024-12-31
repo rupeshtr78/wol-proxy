@@ -6,4 +6,5 @@ BROADCAST_ADDR=""
 
 curl -X POST http://127.0.0.1:8090/wol \
 -H "Content-Type: application/json" \
--d '{"mac_address": "'$MAC_ADDR'", "bind_address": "'$BIND_ADDR'", "broadcast_address": "'$BROADCAST_ADDR'"}'
+-d '{"mac_address": "'$MAC_ADDR'", "bind_address": "'$BIND_ADDR'", "broadcast_address": "'$BROADCAST_ADDR'"}' \
+-b "wol-cookie=we12come.1bbb9bd1295f9d1cbc234ac630a6e79e709205d82be237182dec69fe81d7cced"
