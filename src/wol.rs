@@ -120,3 +120,109 @@ fn create_magic_packet(mac_address: &str) -> Vec<u8> {
 
     magic_packet
 }
+
+#[cfg(test)]
+mod tests {
+    use ::anyhow::Ok;
+
+    use super::*;
+    use ::std::io::{Error, Read, Write};
+    use std::fs::File;
+
+    fn create_test_magic_packet(mac_address: &str) -> Result<Error> {
+        let mp = create_magic_packet(mac_address);
+        // write magic packet to file to scripts directory
+        let mut file = File::create("scripts/magic_packet.txt").unwrap();
+        file.write(&mp).unwrap();
+
+        Ok(Error::new(
+            std::io::ErrorKind::Other,
+            "Test magic packet created",
+        ))
+    }
+
+    #[test]
+    fn test_create_magic_packet() {
+        let mac_address = "A4:93:9F:F4:04:5A";
+        let magic_packet = create_magic_packet(mac_address);
+        let _ = create_test_magic_packet(mac_address);
+        // read magic packet from file
+        let mut file = File::open("scripts/magic_packet.txt").unwrap();
+        let mut buffer = Vec::new();
+        file.read_to_end(&mut buffer).unwrap();
+        assert_eq!(magic_packet, buffer);
+    }
+
+    #[test]
+    fn test_parse_ip_addr() {
+        let ip_addr = "0.0.0.0";
+        let parsed_ip = parse_ip_addr(ip_addr).unwrap();
+        assert_eq!(parsed_ip, IpAddr::V4("0.0.0.0".parse().unwrap()));
+    }
+
+    #[test]
+    fn test_wol_request() {
+        let mac_address = "F4:93:9F:F4:04:5B".to_string();
+        let bind_addr = Some("0.0.0.0".to_string());
+        let broadcast_addr = Some("255.255.255.255".to_string());
+
+        let request = WolRequest::new(&mac_address, &bind_addr, &broadcast_addr);
+        assert_eq!(request.mac_address, mac_address);
+        assert_eq!(request.bind_addr, bind_addr);
+        assert_eq!(request.broadcast_addr, broadcast_addr);
+    }
+
+    #[test]
+    fn test_send_wol() {
+        let mac_address = "A4:93:9F:F4:04:5A".to_string();
+        let bind_addr = Some("0.0.0.0".to_string());
+        let broadcast_addr = Some("255.255.255.255".to_string());
+
+        let request = WolRequest::new(&mac_address, &bind_addr, &broadcast_addr);
+
+        let result = send_wol(&request).unwrap();
+        assert_eq!(result, ());
+    }
+
+    #[test]
+    fn test_send_wol_wrong_mac() {
+        let mac_address = "A4:93:9F:F4:04:6B.XXXX".to_string();
+        let bind_addr = Some("0.0.0.0".to_string());
+        let broadcast_addr = Some("255.255.255.255".to_string());
+
+        let request = WolRequest::new(&mac_address, &bind_addr, &broadcast_addr);
+
+        let result = send_wol(&request).unwrap_err();
+        assert_eq!(
+            result.to_string(),
+            "Failed to get MAC address: A4:93:9F:F4:04:6B.XXXX"
+        );
+    }
+
+    #[test]
+    fn test_send_wol_empty_addr() {
+        let mac_address = "F4:93:9F:F4:04:5B".to_string();
+        let bind_addr = None;
+        let broadcast_addr = None;
+
+        let request = WolRequest::new(&mac_address, &bind_addr, &broadcast_addr);
+
+        let result = send_wol(&request).unwrap();
+        assert_eq!(result, ());
+    }
+
+    #[test]
+    fn test_send_wol_wrong_addr() {
+        let mac_address = "A4:93:9F:F4:04:5A".to_string();
+        let bind_addr = Some("0.0.0.0.XXX".to_string());
+        let broadcast_addr = Some("255.255.255.255".to_string());
+
+        let request = WolRequest::new(&mac_address, &bind_addr, &broadcast_addr);
+
+        let result = send_wol(&request).unwrap_err();
+        assert_eq!(
+            result.to_string(),
+            "Failed to get bind address for: \"0.0.0.0.XXX\""
+        );
+    }
+}

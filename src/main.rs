@@ -1,20 +1,24 @@
+use ::actix_web::http::StatusCode;
 use wol::WolRequest;
 mod wol;
-use actix_web::{web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{middleware, web, App, HttpResponse, HttpServer, Responder};
+use log;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    println!("Starting server at http://");
-    // start http server with actix-web
-    HttpServer::new(|| App::new().route("/send_wol", web::post().to(send_wol_request)))
-        .bind("127.0.0.1:8080")?
-        .run()
-        .await
-}
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
+    log::info!("starting HTTP server at http://localhost:8080");
 
-// fn main() {
-//     check_wol();
-// }
+    // start http server with actix-web
+    HttpServer::new(|| {
+        App::new()
+            .wrap(middleware::Logger::default())
+            .route("/wol", web::post().to(send_wol_request))
+    })
+    .bind("10.0.0.191:8090")?
+    .run()
+    .await
+}
 
 async fn send_wol_request(wol_req: web::Json<WolRequest>) -> impl Responder {
     let mac_address = &wol_req.mac_address;
@@ -24,8 +28,15 @@ async fn send_wol_request(wol_req: web::Json<WolRequest>) -> impl Responder {
     let request = WolRequest::new(mac_address, bind_addr, broadcast_addr);
 
     match wol::send_wol(&request) {
-        Err(e) => HttpResponse::InternalServerError().body(format!("Error: {}", e)),
-        Ok(_) => HttpResponse::Ok().body("Magic packet sent successfully"),
+        Err(e) => HttpResponse::InternalServerError().body(format!(
+            "Status: {:?}, Error: {}",
+            StatusCode::INTERNAL_SERVER_ERROR,
+            e
+        )),
+        Ok(_) => HttpResponse::Ok().body(format!(
+            "Status: {:?}, Magic packet sent successfully",
+            StatusCode::OK
+        )),
     }
 }
 
