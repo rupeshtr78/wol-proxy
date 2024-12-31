@@ -68,23 +68,7 @@ pub fn send_wol(data: &WolRequest) -> Result<()> {
         )
     })?;
 
-    // Wake-on-LAN (WoL) magic packet, the first 6 bytes are always "FF FF FF FF FF FF" (hexadecimal),
-    // which translates to six repetitions of the value 255, essentially a pattern of all "ones" in binary;
-    // this is considered the "magic" part of the packet that identifies it as a WoL signal.
-    let mut magic_packet = vec![0; 102];
-    for i in 0..6 {
-        magic_packet[i] = 0xff;
-    }
-
-    // MAC address repetition:
-    // After the initial "FF FF FF FF FF FF" sequence,
-    // the packet contains 16 repetitions of the target computer's MAC address,
-    // which is how the specific device is identified to wake up
-    for i in 0..16 {
-        for j in 0..MAC_ADDR_SIZE {
-            magic_packet[6 + i * MAC_ADDR_SIZE + j] = mac_addr.bytes()[j];
-        }
-    }
+    let magic_packet = create_magic_packet(&mac_addr.to_string());
 
     let socket = UdpSocket::bind((bind_addr, BIND_PORT))
         .with_context(|| format!("Failed to bind UDP socket to: {:?}", &bind_addr.to_string()))?;
@@ -102,4 +86,32 @@ pub fn send_wol(data: &WolRequest) -> Result<()> {
     }
 
     Ok(())
+}
+
+/// Wake-on-LAN (WoL) magic packet, the first 6 bytes are always "FF FF FF FF FF FF" (hexadecimal),
+/// which translates to six repetitions of the value 255, essentially a pattern of all "ones" in binary;
+/// this is considered the "magic" part of the packet that identifies it as a WoL signal.
+/// MAC address repetition:
+/// After the initial "FF FF FF FF FF FF" sequence,
+/// the packet contains 16 repetitions of the target computer's MAC address,
+/// which is how the specific device is identified to wake up
+/// for a total of 102 bytes.
+fn create_magic_packet(mac_address: &str) -> Vec<u8> {
+    let mut magic_packet = vec![0; 102];
+    for i in 0..6 {
+        magic_packet[i] = 0xff;
+    }
+
+    let mac_address_bytes: Vec<u8> = mac_address
+        .split(':')
+        .map(|byte| u8::from_str_radix(byte, 16).unwrap())
+        .collect();
+
+    for i in 0..16 {
+        for j in 0..MAC_ADDR_SIZE {
+            magic_packet[6 + i * MAC_ADDR_SIZE + j] = mac_address_bytes[j];
+        }
+    }
+
+    magic_packet
 }
