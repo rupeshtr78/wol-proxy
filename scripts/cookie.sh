@@ -13,5 +13,5 @@ cookie_string="$COOKIE_NAME=$signed_cookie_value"
 # Output the secret key and signed cookie
 echo "export COOKIE_SECRET_KEY=$COOKIE_SECRET_KEY"
 echo "export COOKIE_NAME=$COOKIE_NAME"
-echo "export COOKIE_SECRET_VALUE=$cookie_value"
+echo "export COOKIE_SECRET_VALUE=$cookie_secret_value"
 echo "export COOKIE=$cookie_string"
