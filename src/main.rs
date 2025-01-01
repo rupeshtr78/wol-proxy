@@ -58,7 +58,7 @@ async fn send_wol_request(wol_req: web::Json<WolRequest>, req: HttpRequest) -> i
     }
 }
 
-// todo: implement cookie verification better way
+// todo: implement cookie verification better way kind of a hack now to get it going
 fn verify_cookie(req: HttpRequest) -> bool {
     // Check if the cookie is present
     let cookie = match req.cookie(COOKIE_NAME) {
