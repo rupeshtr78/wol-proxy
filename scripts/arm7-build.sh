@@ -28,3 +28,8 @@ rustup target add armv7-unknown-linux-gnueabihf
 # Build the project
 cargo build --target armv7-unknown-linux-gnueabihf --release
 
+# using cross option
+# cross it will launch a docker container, spawn
+# the build inside that, and cross compile your code
+cargo install cross
+cross build --target armv7-unknown-linux-gnueabihf

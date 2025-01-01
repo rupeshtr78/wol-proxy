@@ -1,3 +1,4 @@
-[target.armv7-unknown-linux-gnueabihf]
-linker = "arm-none-linux-gnueabihf-gcc"
+[target.armv7-unknown-linux-musleabihf]
+linker = "arm-openwrt-linux-muslgnueabi-gcc"
+
 
