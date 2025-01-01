@@ -33,3 +33,6 @@ cargo build --target armv7-unknown-linux-gnueabihf --release
 # the build inside that, and cross compile your code
 cargo install cross
 cross build --target armv7-unknown-linux-gnueabihf
+
+# soft float works for ddwrt routers
+cross build --target armv7-unknown-linux-gnueabi --release

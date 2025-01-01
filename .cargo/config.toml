@@ -1,5 +1,5 @@
-[target.armv7-unknown-linux-gnueabihf]
-linker = "arm-none-linux-gnueabihf-gcc"
-rustflags = ["-C", "target-feature=+v7,+vfp3,+neon,+crt-static"]
+[target.armv7-unknown-linux-gnueabi]
+linker = "arm-none-linux-gnueabi-gcc"
+rustflags = ["-C", "target-feature=+crt-static"]
 
 
