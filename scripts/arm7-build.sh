@@ -18,6 +18,13 @@ export PATH=$PATH:/path/to/gcc-arm-10.2-2020.11-x86_64-arm-linux-gnueabihf/bin
 # verufy the installation
 arm-none-linux-gnueabihf-gcc --version
 
+# for raspberry pi aaarch64
+wget https://developer.arm.com/-/media/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+tar -xvf arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+export PATH=$PATH:/path/to/arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu/bin
+[target.aarch64-unknown-linux-gnu]
+linker = "aarch64-none-linux-gnu-gcc"
+
 # Add the linker to the .cargo/config file:
 # .cargo/config
 # [target.armv7-unknown-linux-gnueabihf]

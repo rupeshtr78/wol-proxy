@@ -14,9 +14,9 @@ const COOKIE_NAME: &str = "wol-cookie";
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("debug"));
-    log::info!("starting HTTP server at http://localhost:8080");
+    let port = std::env::var("WOL_PORT").unwrap_or("9080".to_string());
 
-    let port = std::env::var("WOL_PORT").unwrap_or("8090".to_string());
+    log::info!("{}", format!("Starting wol server at port: {}", port));
 
     // start http server with actix-web
     HttpServer::new(move || {
