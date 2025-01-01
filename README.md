@@ -1,6 +1,6 @@
 # Remote Wake-on-LAN (WoL) Proxy Server
 
-This repository contains a Rust-based application designed to remotely wake up your server using the Wake-on-LAN (WoL) protocol. The application acts as a proxy that listens for HTTP requests and sends the wol magic packet to wake up your server. Wrote this to remote wake my plex music server while I am on the road. (Need portforwarding on your router)
+Application to remotely wake up your home server using the Wake-on-LAN (WoL) protocol. The application acts as a proxy that listens for HTTP requests and sends the wol magic packet to wake up your server. Wrote this to remote wake my plex music server while I am on the road. (Need portforwarding on your router)
 
 Mobile --> Router --> Wol Proxy --> Server
 
