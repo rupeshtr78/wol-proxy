@@ -1,4 +1,5 @@
 #![warn(unused_crate_dependencies)]
+use ::actix_governor::{Governor, GovernorConfigBuilder};
 use ::actix_web::http::StatusCode;
 use ::log::debug;
 use actix_web::{middleware, web, App, HttpRequest, HttpResponse, HttpServer, Responder};
@@ -18,10 +19,18 @@ async fn main() -> std::io::Result<()> {
 
     log::info!("{}", format!("Starting wol server at port: {}", port));
 
+    // governor configuration to limit requests
+    let governor_conf = GovernorConfigBuilder::default()
+        .requests_per_second(2)
+        .burst_size(5)
+        .finish()
+        .unwrap();
+
     // start http server with actix-web
     HttpServer::new(move || {
         App::new()
             .wrap(middleware::Logger::default())
+            .wrap(Governor::new(&governor_conf))
             // .route("/wol", web::post().to(send_wol_request))
             .service(send_wol_request)
     })
