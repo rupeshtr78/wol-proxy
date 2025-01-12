@@ -65,9 +65,10 @@ async fn main() -> std::io::Result<()> {
         }
     };
 
+    let tls_port = port.parse::<u16>().unwrap_or(8443);
     log::info!("{}", format!("Starting wol https server at port: {}", port));
     server
-        .bind_rustls_0_23(("0.0.0.0", 8443), server_config)?
+        .bind_rustls_0_23(("0.0.0.0", tls_port), server_config)?
         .tls_handshake_timeout(Duration::from_secs(10))
         .run()
         .await
