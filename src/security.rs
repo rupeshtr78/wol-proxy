@@ -1,7 +1,6 @@
-use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Responder};
 use anyhow::bail;
 use anyhow::{Context, Result};
-use log::{info, warn};
+use log::info;
 use rustls::pki_types::CertificateDer;
 use rustls::pki_types::PrivateKeyDer;
 use rustls::server::WebPkiClientVerifier;
@@ -14,8 +13,6 @@ use std::path::Path;
 use std::sync::Arc;
 
 pub fn get_server_config(server_cert: &String, server_key: &String) -> Result<ServerConfig> {
-    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
-
     // get system certs
     let mut roots = RootCertStore::empty();
 

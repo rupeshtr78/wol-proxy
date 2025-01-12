@@ -2,7 +2,6 @@
 use ::actix_governor::{Governor, GovernorConfigBuilder};
 use ::actix_web::http::StatusCode;
 use ::log::debug;
-use ::rustls::server;
 use actix_web::{middleware, web, App, HttpRequest, HttpResponse, HttpServer, Responder};
 use log;
 use std::time::Duration;
@@ -16,8 +15,8 @@ mod security;
 mod wol;
 
 const COOKIE_NAME: &str = "wol-cookie";
-const SERVER_CERT: &str = "certs/client.crt";
-const SERVER_KEY: &str = "certs/client.key";
+const SERVER_CERT: &str = "/home/rupesh/aqrtr/security/ssl/clients/wildcard-rupesh/client.crt";
+const SERVER_KEY: &str = "/home/rupesh/aqrtr/security/ssl/clients/wildcard-rupesh/client.key";
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -25,7 +24,8 @@ async fn main() -> std::io::Result<()> {
     let port = std::env::var("WOL_PORT").unwrap_or("9888".to_string());
     let tls = std::env::var("WOL_TLS").unwrap_or("true".to_string());
 
-    log::info!("{}", format!("Starting wol server at port: {}", port));
+    let server_cert = std::env::var("WOL_SERVER_CERT").unwrap_or(SERVER_CERT.to_string());
+    let server_key = std::env::var("WOL_SERVER_KEY").unwrap_or(SERVER_KEY.to_string());
 
     // governor configuration to limit requests
     let governor_conf = GovernorConfigBuilder::default()
@@ -34,7 +34,7 @@ async fn main() -> std::io::Result<()> {
         .finish()
         .unwrap();
 
-    let tls_config = security::get_server_config(&SERVER_CERT.to_string(), &SERVER_KEY.to_string());
+    let tls_config = security::get_server_config(&server_cert, &server_key);
     let server_config = match tls_config {
         Ok(server_config) => {
             log::info!("TLS Config created successfully");
@@ -53,12 +53,15 @@ async fn main() -> std::io::Result<()> {
             .wrap(Governor::new(&governor_conf))
             // .route("/wol", web::post().to(send_wol_request))
             .service(send_wol_request)
+            .service(index)
     });
 
     if tls == "false" {
+        log::info!("{}", format!("Starting wol http server at port: {}", port));
         return server.bind(format!("0.0.0.0:{}", port))?.run().await;
     }
 
+    log::info!("{}", format!("Starting wol https server at port: {}", port));
     server
         .bind_rustls_0_23(("0.0.0.0", 8443), server_config)?
         .tls_handshake_timeout(Duration::from_secs(10))
@@ -162,4 +165,9 @@ fn is_valid_cookie(cookie_value: &str) -> Result<bool, std::env::VarError> {
         );
         Ok(false)
     }
+}
+
+#[actix_web::get("/")]
+async fn index(_req: HttpRequest) -> impl Responder {
+    "WOL TLS Server!"
 }
