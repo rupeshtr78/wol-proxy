@@ -12,6 +12,14 @@ use std::io::BufReader;
 use std::path::Path;
 use std::sync::Arc;
 
+/// Get server config
+/// Args:
+///    server_cert: &String - Path to server cert
+///   server_key: &String - Path to server key
+/// Returns:
+///   Result<ServerConfig> - ServerConfig
+/// Errors:
+///  Failed to get server certs
 pub fn get_server_config(server_cert: &String, server_key: &String) -> Result<ServerConfig> {
     // get system certs
     let mut roots = RootCertStore::empty();
@@ -25,16 +33,10 @@ pub fn get_server_config(server_cert: &String, server_key: &String) -> Result<Se
     }
 
     // get server certs and private key
-
     let server_certs = get_certs(&server_cert).context("Failed to get server certs")?;
     let server_key = get_key(&server_key).context("Failed to get server key")?;
 
-    let server_certs: Vec<CertificateDer<'static>> = server_certs
-        .iter()
-        .map(|cert| cert.clone().into_owned())
-        .collect();
-    let server_key: PrivateKeyDer<'static> = server_key.clone_key();
-
+    // create server config
     let client_auth = WebPkiClientVerifier::builder(Arc::new(roots))
         .build()
         .context("Failed to create client verifier")?;
@@ -47,8 +49,13 @@ pub fn get_server_config(server_cert: &String, server_key: &String) -> Result<Se
     Ok(tls_config)
 }
 
-fn get_certs(path: &str) -> Result<Vec<CertificateDer<'_>>> {
-    println!("Getting Certs!");
+/// Get certs with 'static lifetime
+/// Args:
+///  path: &str - Path to certs
+/// Returns:
+/// Result<Vec<CertificateDer<'static>>> - Vec<CertificateDer<'static>>
+fn get_certs(path: &str) -> Result<Vec<CertificateDer<'static>>> {
+    log::debug!("Getting Server Certs!");
 
     let cert_path = Path::new(path);
     if !cert_path.exists() {
@@ -66,11 +73,19 @@ fn get_certs(path: &str) -> Result<Vec<CertificateDer<'_>>> {
         return Err(anyhow::anyhow!("No certs found in file"));
     }
 
+    // Convert to owned certs with 'static lifetime
+    let certs = certs.iter().map(|cert| cert.clone().into_owned()).collect();
+
     Ok(certs)
 }
 
-fn get_key(path: &str) -> Result<PrivateKeyDer<'_>> {
-    println!("Getting Private Key!");
+/// Get private key with 'static lifetime
+/// Args:
+///  path: &str - Path to private key
+/// Returns:
+/// Result<PrivateKeyDer> - PrivateKeyDer<'static>
+fn get_key(path: &str) -> Result<PrivateKeyDer<'static>> {
+    log::debug!("Getting Server private Key!");
 
     let key_path = Path::new(path);
     if !key_path.exists() {
@@ -90,7 +105,7 @@ fn get_key(path: &str) -> Result<PrivateKeyDer<'_>> {
     }
 
     match keys.into_iter().next() {
-        Some(key) => Ok(key), // Move the key out of the vector
+        Some(key) => Ok(key.clone_key()), // Move the key out of the vector
         None => Err(anyhow::anyhow!("No key found in file")),
     }
 }

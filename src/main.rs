@@ -21,6 +21,10 @@ const SERVER_KEY: &str = "/home/rupesh/aqrtr/security/ssl/clients/wildcard-rupes
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("debug"));
+
+    // load env variables from .env file
+    dotenvy::dotenv().ok();
+
     let port = std::env::var("WOL_PORT").unwrap_or("9888".to_string());
     let tls = std::env::var("WOL_TLS").unwrap_or("true".to_string());
 

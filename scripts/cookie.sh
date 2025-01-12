@@ -23,3 +23,5 @@ echo "COOKIE_NAME=$COOKIE_NAME" >> .env
 echo "COOKIE_SECRET_VALUE=$cookie_secret_value" >> .env
 echo "COOKIE=$cookie_string" >> .env
 echo "WOL_PORT=8098" >> .env
+echo "WOL_SERVER_CERT=certs/server.crt" >> .env
+echo "WOL_SERVER_KEY=certs/server.key" >> .env
