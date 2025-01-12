@@ -2,20 +2,28 @@
 use ::actix_governor::{Governor, GovernorConfigBuilder};
 use ::actix_web::http::StatusCode;
 use ::log::debug;
+use ::rustls::server;
 use actix_web::{middleware, web, App, HttpRequest, HttpResponse, HttpServer, Responder};
 use log;
+use std::time::Duration;
 use wol::WolRequest;
-mod wol;
+
 use hex;
 use hmac::{Hmac, Mac};
 use sha2::Sha256;
 
+mod security;
+mod wol;
+
 const COOKIE_NAME: &str = "wol-cookie";
+const SERVER_CERT: &str = "certs/client.crt";
+const SERVER_KEY: &str = "certs/client.key";
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("debug"));
     let port = std::env::var("WOL_PORT").unwrap_or("9888".to_string());
+    let tls = std::env::var("WOL_TLS").unwrap_or("true".to_string());
 
     log::info!("{}", format!("Starting wol server at port: {}", port));
 
@@ -26,17 +34,36 @@ async fn main() -> std::io::Result<()> {
         .finish()
         .unwrap();
 
+    let tls_config = security::get_server_config(&SERVER_CERT.to_string(), &SERVER_KEY.to_string());
+    let server_config = match tls_config {
+        Ok(server_config) => {
+            log::info!("TLS Config created successfully");
+            server_config
+        }
+        Err(e) => {
+            log::error!("Failed to create TLS Config: {}", e);
+            return Ok(());
+        }
+    };
+
     // start http server with actix-web
-    HttpServer::new(move || {
+    let server = HttpServer::new(move || {
         App::new()
             .wrap(middleware::Logger::default())
             .wrap(Governor::new(&governor_conf))
             // .route("/wol", web::post().to(send_wol_request))
             .service(send_wol_request)
-    })
-    .bind(format!("0.0.0.0:{}", port))?
-    .run()
-    .await
+    });
+
+    if tls == "false" {
+        return server.bind(format!("0.0.0.0:{}", port))?.run().await;
+    }
+
+    server
+        .bind_rustls_0_23(("0.0.0.0", 8443), server_config)?
+        .tls_handshake_timeout(Duration::from_secs(10))
+        .run()
+        .await
 }
 
 #[actix_web::post("/wol")]
