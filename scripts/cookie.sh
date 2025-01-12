@@ -25,3 +25,4 @@ echo "COOKIE=$cookie_string" >> .env
 echo "WOL_PORT=8098" >> .env
 echo "WOL_SERVER_CERT=certs/server.crt" >> .env
 echo "WOL_SERVER_KEY=certs/server.key" >> .env
+echo "WOL_TLS=true" >> .env

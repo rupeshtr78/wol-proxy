@@ -38,18 +38,6 @@ async fn main() -> std::io::Result<()> {
         .finish()
         .unwrap();
 
-    let tls_config = security::get_server_config(&server_cert, &server_key);
-    let server_config = match tls_config {
-        Ok(server_config) => {
-            log::info!("TLS Config created successfully");
-            server_config
-        }
-        Err(e) => {
-            log::error!("Failed to create TLS Config: {}", e);
-            return Ok(());
-        }
-    };
-
     // start http server with actix-web
     let server = HttpServer::new(move || {
         App::new()
@@ -64,6 +52,18 @@ async fn main() -> std::io::Result<()> {
         log::info!("{}", format!("Starting wol http server at port: {}", port));
         return server.bind(format!("0.0.0.0:{}", port))?.run().await;
     }
+
+    let tls_config = security::get_server_config(&server_cert, &server_key);
+    let server_config = match tls_config {
+        Ok(server_config) => {
+            log::info!("TLS Config created successfully");
+            server_config
+        }
+        Err(e) => {
+            log::error!("Failed to create TLS Config: {}", e);
+            return Ok(());
+        }
+    };
 
     log::info!("{}", format!("Starting wol https server at port: {}", port));
     server
