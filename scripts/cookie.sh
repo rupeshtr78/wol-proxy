@@ -15,7 +15,7 @@ echo "export COOKIE_SECRET_KEY=$COOKIE_SECRET_KEY"
 echo "export COOKIE_NAME=$COOKIE_NAME"
 echo "export COOKIE_SECRET_VALUE=$cookie_secret_value"
 echo "export COOKIE=$cookie_string"
-echo "export WOL_PORT=8098"
+echo "export WOL_PORT=9080"
 
 # write to .env file
 echo "COOKIE_SECRET_KEY=$COOKIE_SECRET_KEY" > .env
