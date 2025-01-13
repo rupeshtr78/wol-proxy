@@ -32,7 +32,7 @@ else
         echo "Error: TLS client certificate or key file not found."
         exit 1
     fi
-    curl --cert client.crt --key client.key -X POST "https://rupesh.com:9080/wol" \
+    curl --cert client.crt --key client.key -X POST "https://rupesh.forsynet.com:9080/wol" \
         -H "Content-Type: application/json" \
         -d "$PAYLOAD" \
         -b "$COOKIE_NAME=$COOKIE"

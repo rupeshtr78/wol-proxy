@@ -77,7 +77,7 @@ fn get_certs(path: &str) -> Result<Vec<CertificateDer<'static>>> {
     // Convert to owned certs with 'static lifetime
     let static_certs = certs.iter().map(|cert| cert.clone().into_owned()).collect();
 
-    log::debug!("Server Certs: {:?}", static_certs);
+    log::debug!("Got Server Certs: {:?}", path);
     Ok(static_certs)
 }
 
