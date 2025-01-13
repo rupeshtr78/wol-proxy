@@ -8,6 +8,7 @@ Mobile --> Router --> Wol Proxy --> Server
 
 - **Wake-on-LAN Magic Packet Generation**: The application generates and sends a magic packet to the specified MAC address of your server.
 - **HTTP API**: Provides an HTTP endpoint to trigger the WoL request.
+- **Tls Support**: option to enable or disable TLS on by default.
 - **Cookie Verification**: Ensures that only authorized requests can trigger the WoL functionality.
 - **Configurable Bind and Broadcast Addresses**: Allows you to specify the bind and broadcast addresses for sending the magic packet.
 - **Test Suite**: Includes unit tests ( Need more work here ) .
