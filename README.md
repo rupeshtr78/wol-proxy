@@ -68,6 +68,19 @@ curl -X POST http://localhost:8080/wol \
 
 The application verifies the presence and validity of a cookie in the HTTP request to ensure that only authorized requests can trigger the WoL functionality. The cookie value is expected to be set in the `scripts/cookie.sh` script. ( Needs more work here. Kind of a hack at the moment ).
 
+### To enable TLS
+
+Set the `WOL_TLS` environment variable to `"true"`.
+Provide valid paths to the server certificate and private key files using the `WOL_SERVER_CERT` and `WOL_SERVER_KEY` environment variables.
+If client certificate verification is required, configure the WebPkiClientVerifier in the `get_server_config` function.
+
+```bash
+export WOL_TLS="true"
+export WOL_SERVER_CERT="/path/to/server.crt"
+export WOL_SERVER_KEY="/path/to/server.key"
+```
+
+
 ## Scripts
 
 - **arm7-build.sh**: Script to build the application for ARMv7 architecture.
