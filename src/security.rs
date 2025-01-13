@@ -59,6 +59,7 @@ fn get_certs(path: &str) -> Result<Vec<CertificateDer<'static>>> {
 
     let cert_path = Path::new(path);
     if !cert_path.exists() {
+        log::error!("File not found: {}", path);
         return Err(anyhow::anyhow!("File not found: {}", path));
     }
 
@@ -74,9 +75,10 @@ fn get_certs(path: &str) -> Result<Vec<CertificateDer<'static>>> {
     }
 
     // Convert to owned certs with 'static lifetime
-    let certs = certs.iter().map(|cert| cert.clone().into_owned()).collect();
+    let static_certs = certs.iter().map(|cert| cert.clone().into_owned()).collect();
 
-    Ok(certs)
+    log::debug!("Server Certs: {:?}", static_certs);
+    Ok(static_certs)
 }
 
 /// Get private key with 'static lifetime
