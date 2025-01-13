@@ -28,10 +28,9 @@ echo "WOL_SERVER_KEY=certs/server.key" >> .env
 echo "WOL_TLS=true" >> .env
 
 if [ -f .env ]; then
-    echo "Environment variables written to .env file"
-    # set environment variables
-    export $(cat .env | xargs)
+    echo "Environment variables written to .env file" 
 else
     echo "Error writing to .env file"
 fi
 
+export $(grep -v '^#' .env | xargs) 
