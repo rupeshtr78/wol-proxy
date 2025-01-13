@@ -11,6 +11,7 @@ use hex;
 use hmac::{Hmac, Mac};
 use sha2::Sha256;
 
+mod openssltls;
 mod security;
 mod wol;
 
@@ -65,10 +66,13 @@ async fn main() -> std::io::Result<()> {
         }
     };
 
+    let builder = openssltls::get_server_certs(&server_cert, &server_key).unwrap();
+
     let tls_port = port.parse::<u16>().unwrap_or(8443);
     log::info!("{}", format!("Starting wol https server at port: {}", port));
     server
-        .bind_rustls_0_23(("0.0.0.0", tls_port), server_config)?
+        // .bind_rustls_0_23(("0.0.0.0", tls_port), server_config)?
+        .bind_openssl(("0.0.0.0", tls_port), builder)?
         .tls_handshake_timeout(Duration::from_secs(10))
         .run()
         .await
