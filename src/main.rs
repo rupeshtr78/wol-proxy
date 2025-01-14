@@ -11,7 +11,8 @@ use hex;
 use hmac::{Hmac, Mac};
 use sha2::Sha256;
 
-mod security;
+mod openssltls;
+// mod security;
 mod wol;
 
 const COOKIE_NAME: &str = "wol-cookie";
@@ -53,23 +54,17 @@ async fn main() -> std::io::Result<()> {
         return server.bind(format!("0.0.0.0:{}", port))?.run().await;
     }
 
-    let tls_config = security::get_server_config(&server_cert, &server_key);
-    let server_config = match tls_config {
-        Ok(server_config) => {
-            log::info!("TLS Config created successfully");
-            server_config
-        }
-        Err(e) => {
-            log::error!("Failed to create TLS Config: {}", e);
-            return Ok(());
-        }
-    };
+    // let tls_config = security::get_server_config(&server_cert, &server_key)?;
+
+    let builder = openssltls::get_server_certs(&server_cert, &server_key).unwrap();
 
     let tls_port = port.parse::<u16>().unwrap_or(8443);
     log::info!("{}", format!("Starting wol https server at port: {}", port));
     server
-        .bind_rustls_0_23(("0.0.0.0", tls_port), server_config)?
+        // .bind_rustls_0_23(("0.0.0.0", tls_port), server_config)?
+        .bind_openssl(("0.0.0.0", tls_port), builder)?
         .tls_handshake_timeout(Duration::from_secs(10))
+        .workers(4)
         .run()
         .await
 }
