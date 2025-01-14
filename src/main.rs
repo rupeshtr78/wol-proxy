@@ -12,7 +12,7 @@ use hmac::{Hmac, Mac};
 use sha2::Sha256;
 
 mod openssltls;
-mod security;
+// mod security;
 mod wol;
 
 const COOKIE_NAME: &str = "wol-cookie";
@@ -64,6 +64,7 @@ async fn main() -> std::io::Result<()> {
         // .bind_rustls_0_23(("0.0.0.0", tls_port), server_config)?
         .bind_openssl(("0.0.0.0", tls_port), builder)?
         .tls_handshake_timeout(Duration::from_secs(10))
+        .workers(4)
         .run()
         .await
 }
