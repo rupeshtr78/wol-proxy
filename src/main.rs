@@ -2,7 +2,10 @@
 use ::actix_governor::{Governor, GovernorConfigBuilder};
 use ::actix_web::http::StatusCode;
 use ::log::debug;
-use actix_web::{middleware, web, App, HttpRequest, HttpResponse, HttpServer, Responder};
+use actix_web::{
+    http::header::ContentType, middleware, web, App, HttpRequest, HttpResponse, HttpServer,
+    Responder,
+};
 use log;
 use std::time::Duration;
 use wol::WolRequest;
@@ -54,9 +57,20 @@ async fn main() -> std::io::Result<()> {
         return server.bind(format!("0.0.0.0:{}", port))?.run().await;
     }
 
+    // @todo issue with ios client when using my own root ca with rustls
     // let tls_config = security::get_server_config(&server_cert, &server_key)?;
 
-    let builder = openssltls::get_server_certs(&server_cert, &server_key).unwrap();
+    let builder = openssltls::get_server_certs(&server_cert, &server_key);
+    let builder = match builder {
+        Ok(builder) => builder,
+        Err(e) => {
+            log::error!("Error loading server certificates: {}", e);
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "Error loading server certificates",
+            ));
+        }
+    };
 
     let tls_port = port.parse::<u16>().unwrap_or(8443);
     log::info!("{}", format!("Starting wol https server at port: {}", port));
@@ -169,5 +183,17 @@ fn is_valid_cookie(cookie_value: &str) -> Result<bool, std::env::VarError> {
 
 #[actix_web::get("/")]
 async fn index(_req: HttpRequest) -> impl Responder {
-    "WOL TLS Server!"
+    HttpResponse::Ok().content_type(ContentType::html()).body(
+        r#"
+        <html>
+            <head>
+                <title>WOL Server</title>
+            </head>
+            <body>
+                <h1>WOL Server</h1>
+                <p>Wake on LAN server</p>
+            </body>
+        </html>
+        "#,
+    )
 }
