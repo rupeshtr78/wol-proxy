@@ -139,15 +139,15 @@ async fn status(req: HttpRequest, ip_addr: web::Json<IpAddress>) -> impl Respond
     // let r = req.clone();
     // debug!("Request: {:?}", r);
 
-    if is_ssh_port_open(&ip_addr, Duration::from_secs(5)) {
+    if is_port_open(&ip_addr, Duration::from_secs(5)) {
         return HttpResponse::Ok().body(format!(
-            "Server is Online SSH port is open on {}",
-            ip_addr.ip
+            "Server is Online port {} is open on {}",
+            ip_addr.port, ip_addr.ip
         ));
     }
     HttpResponse::Ok().body(format!(
-        "Server is Offline SSH port is closed on {}",
-        ip_addr.ip
+        "Server is Offline port {} is closed on {}",
+        ip_addr.port, ip_addr.ip
     ))
 }
 
@@ -157,10 +157,10 @@ struct IpAddress {
     port: String,
 }
 
-fn is_ssh_port_open(ssh: &IpAddress, timeout: Duration) -> bool {
+fn is_port_open(ssh: &IpAddress, timeout: Duration) -> bool {
     let addr = format!("{}:{}", ssh.ip, ssh.port)
         .parse::<SocketAddr>()
         .unwrap();
-    log::debug!("Checking if SSH port is open on {}", addr);
+    log::debug!("Checking if port {} is open on {}", ssh.port, ssh.ip);
     TcpStream::connect_timeout(&addr, timeout).is_ok()
 }
