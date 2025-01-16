@@ -1,13 +1,14 @@
 #![warn(unused_crate_dependencies)]
 use ::actix_governor::{Governor, GovernorConfigBuilder};
 use ::actix_web::http::StatusCode;
-use ::log::debug;
 use actix_web::{
     http::header::ContentType, middleware, web, App, HttpRequest, HttpResponse, HttpServer,
     Responder,
 };
+
+use anyhow::Context;
+use anyhow::Result;
 use log;
-use rustls::pki_types::IpAddr;
 use std::net::{SocketAddr, TcpStream};
 use std::time::Duration;
 use wol::WolRequest;
@@ -139,12 +140,24 @@ async fn status(req: HttpRequest, ip_addr: web::Json<IpAddress>) -> impl Respond
     // let r = req.clone();
     // debug!("Request: {:?}", r);
 
-    if is_port_open(&ip_addr, Duration::from_secs(5)) {
-        return HttpResponse::Ok().body(format!(
-            "Server is Online port {} is open on {}",
-            ip_addr.port, ip_addr.ip
-        ));
+    match is_port_open(&ip_addr, Duration::from_secs(5)) {
+        Ok(true) => {
+            return HttpResponse::Ok().body(format!(
+                "Server is Online port {} is open on {}",
+                ip_addr.port, ip_addr.ip
+            ))
+        }
+        Err(e) => {
+            log::error!("Error checking port: {}", e);
+            return HttpResponse::InternalServerError().body(format!(
+                "Status: {:?}, Error: {}",
+                StatusCode::INTERNAL_SERVER_ERROR,
+                e
+            ));
+        }
+        _ => {}
     }
+
     HttpResponse::Ok().body(format!(
         "Server is Offline port {} is closed on {}",
         ip_addr.port, ip_addr.ip
@@ -157,10 +170,11 @@ struct IpAddress {
     port: String,
 }
 
-fn is_port_open(ssh: &IpAddress, timeout: Duration) -> bool {
+fn is_port_open(ssh: &IpAddress, timeout: Duration) -> Result<bool> {
     let addr = format!("{}:{}", ssh.ip, ssh.port)
         .parse::<SocketAddr>()
-        .unwrap();
+        .with_context(|| format!("Failed to parse address: {}:{}", ssh.ip, ssh.port))?;
+
     log::debug!("Checking if port {} is open on {}", ssh.port, ssh.ip);
-    TcpStream::connect_timeout(&addr, timeout).is_ok()
+    Ok(TcpStream::connect_timeout(&addr, timeout).is_ok())
 }

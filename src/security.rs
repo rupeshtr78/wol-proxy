@@ -1,3 +1,4 @@
+#![allow(unused_imports)]
 use actix_web::HttpRequest;
 use anyhow::bail;
 use anyhow::{Context, Result};
@@ -23,6 +24,7 @@ use std::sync::Arc;
 ///   Result<ServerConfig> - ServerConfig
 /// Errors:
 ///  Failed to get server certs
+#[allow(dead_code)]
 pub fn get_server_config(server_cert: &String, server_key: &String) -> Result<ServerConfig> {
     // get system certs
     let mut roots = RootCertStore::empty();
@@ -57,6 +59,7 @@ pub fn get_server_config(server_cert: &String, server_key: &String) -> Result<Se
 ///  path: &str - Path to certs
 /// Returns:
 /// Result<Vec<CertificateDer<'static>>> - Vec<CertificateDer<'static>>
+#[allow(dead_code)]
 fn get_certs(path: &str) -> Result<Vec<CertificateDer<'static>>> {
     log::debug!("Getting Server Certs!");
 
@@ -89,6 +92,7 @@ fn get_certs(path: &str) -> Result<Vec<CertificateDer<'static>>> {
 ///  path: &str - Path to private key
 /// Returns:
 /// Result<PrivateKeyDer> - PrivateKeyDer<'static>
+#[allow(dead_code)]
 fn get_key(path: &str) -> Result<PrivateKeyDer<'static>> {
     log::debug!("Getting Server private Key!");
 
