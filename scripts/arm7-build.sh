@@ -43,3 +43,6 @@ cross build --target armv7-unknown-linux-gnueabihf
 
 # soft float works for ddwrt routers
 cross build --target armv7-unknown-linux-gnueabi --release
+
+# for raspberry pi 4
+cross build --target aarch64-unknown-linux-gnu --release
